@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ROS build artifacts
+build/
+devel/
+logs/
+
+# VSCode and editor folders
+.vscode/
+.idea/
+
+# Backup files
+*~
