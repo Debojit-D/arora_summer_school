@@ -8,11 +8,11 @@ This task focuses on implementing **Cartesian trajectory tracking** for the **HE
 * Sine wave traversal with return path along the same curve.
 * Straight-line sweeps in task space.
 
-You will edit `trajectory_tracking_student_template.py` to implement these trajectory functions and visualize the path.
+You will edit `03_trajectory_tracking_student_template.py` to implement these trajectory functions and visualize the path.
 
 <div align="center">
 
-[![Watch the video](https://img.youtube.com/vi/x2lWNBFbgVk/hqdefault.jpg)](https://youtu.be/x2lWNBFbgVk)
+[![Watch the video](https://img.youtube.com/vi/kliNHYT9Iak/hqdefault.jpg)](https://youtu.be/kliNHYT9Iak)
 
 </div>
 
@@ -64,7 +64,7 @@ These are updated every 10 ms and fed to the velocity controller.
 ## 📁 File Location
 
 ```bash
-arora_summer_school/challenges/trajectory_tracking_student_template.py
+arora_summer_school/challenges/03_trajectory_tracking_student_template.py
 ```
 
 Run the script using:

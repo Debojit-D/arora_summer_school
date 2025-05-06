@@ -122,7 +122,7 @@ if __name__ == '__main__':
             # ---- SELECT ONLY ONE TRAJECTORY FUNCTION AT A TIME ----
             #pos, quat = circular_trajectory(t)
             #pos, quat = sine_wave_bidirectional(t)
-            pos, quat = straight_line_trajectory(t)
+            #pos, quat = straight_line_trajectory(t)
             #pos, quat = custom_trajectory(t)
 
             commander.target_pos = kdl.Vector(*pos)

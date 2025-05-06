@@ -30,10 +30,37 @@ Implement a torque-based gravity compensation controller, allowing the robot to 
 
 ---
 
-### 3. Fun and Fair Trajectory Tracking Challenge
+### 🎯 3. Fun and Fair Trajectory Tracking Challenge
 
 **Description**:
-The robot must trace a complex closed-loop trajectory manually or semi-autonomously. A buzzer integrated into the system activates when the robot is accurately following the path.
+In this challenge, the HEAL robot must trace **smooth and repeatable end-effector trajectories** using **velocity-based Damped Least Squares (DLS) inverse kinematics**.
+
+You will implement and test multiple dynamic paths such as:
+
+* 🔵 **Circular path** — move the robot in a circular path.
+* 🔶 **Sine wave motion** — trace oscillations across a flat surface (e.g., for cleaning or drawing)
+* 🔁 **Straight-line sweep** — back-and-forth motion between two X-axis bounds
+
+Your task is to:
+
+1. Select and implement any **three or more** trajectories.
+2. Dynamically update the robot's Cartesian **position and orientation**.
+3. Log and plot the **3D trajectory** traced by the end-effector.
+
+🛡️ **Safety Constraint**:
+By default, angular velocity control is **disabled** in the IK solver to protect robot cable winding.
+You may optionally **enable angular components** for if the tasks demand so but do check that the gripper wire doesn't get entangled.
+
+📦 **Starter Template**:
+Begin by editing `03_trajectory_tracking_student_template.py`.
+
+📖 [Detailed Instructions](docs/task_3_trajectory_tracking.md)
+
+<div align="center">
+
+[![Watch the video](https://img.youtube.com/vi/kliNHYT9Iak/hqdefault.jpg)](https://youtu.be/kliNHYT9Iak)
+
+</div>
 
 ---
 
@@ -57,11 +84,6 @@ You will:
 [![Watch the video](https://img.youtube.com/vi/x2lWNBFbgVk/hqdefault.jpg)](https://youtu.be/x2lWNBFbgVk)
 
 </div>
-
----
-
-Let me know if you'd like the video preview to be smaller, or want icons or badges added for visual polish!
-
 
 ---
 
