@@ -38,16 +38,34 @@ The robot must trace a complex closed-loop trajectory manually or semi-autonomou
 
 ---
 
+Here’s the improved version of the `README.md` section for **Task 4: Pick and Place**, with clearer instructions, polished grammar, and a link to the detailed documentation (`pick_and_place.md`):
+
+---
+
 ### 4. Pick and Place Task
 
 **Description**:
-Record the cartesian position of where the object needs to be picked using, Hint : In the gravity compensation you had worked on creating a publisher for computing the end-effector pose and orientation usign that get the predefined coordinated where you need to pick the object and then perform a series of planning to place the object to a new location
+In this task, the robot performs a full **pick-and-place** operation using velocity control and gripper actuation.
+You will:
+
+* Record the Cartesian pose of the object to be picked.
+* Use the previously implemented **gravity compensation mode** to move the robot manually and log the desired **end-effector pose** (position + orientation).
+* Plan a sequence of Cartesian waypoints using this pose and use **inverse kinematics and trajectory planning** to move the robot.
+* Execute grasping and releasing actions via ROS topics.
+
+💡 *Hint*: Refer to your gravity compensation script where you published the end-effector pose using the robot’s forward kinematics. Use that code to extract the object pickup coordinates.
+
+📖 [Detailed Instructions](docs/task_4_pick_and_place.md)
 
 <div align="center">
 
 [![Watch the video](https://img.youtube.com/vi/x2lWNBFbgVk/hqdefault.jpg)](https://youtu.be/x2lWNBFbgVk)
 
 </div>
+
+---
+
+Let me know if you'd like the video preview to be smaller, or want icons or badges added for visual polish!
 
 
 ---
