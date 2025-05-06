@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+# File: dls_velocity_commander.py
+# Author: Debojit Das (2025)
+#
+# Description:
+# - Damped Least Squares Cartesian velocity control.
+# - Uses live joint state feedback and internal forward kinematics.
+# - Limits linear and angular velocities.
+# - Ensures quaternion hemisphere continuity.
+# - Avoids singularities using damping factor.
+# -------------------------------------------------------------------------
+
 import os
 import sys
 import rospy
@@ -9,111 +20,152 @@ from std_msgs.msg import Float64MultiArray
 from urdf_parser_py.urdf import URDF
 from kdl_parser_py.urdf import treeFromParam
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# ------------------------ Utility -----------------------------------------
+def normalize_quaternion(q):
+    q = np.array(q)
+    return q / np.linalg.norm(q)
 
+# ------------------------ Main Class --------------------------------------
 class DLSVelocityCommander:
     def __init__(self, target_pos, target_quat, custom_ds=None):
         """
         Parameters:
-        - target_pos: List of 3 floats [x, y, z]
-        - target_quat: List of 4 floats [qx, qy, qz, qw]
-        - custom_ds: Optional callable f(x: np.ndarray) -> np.ndarray that returns desired velocity
+        - target_pos: [x, y, z] in meters (target end-effector position)
+        - target_quat: [x, y, z, w] quaternion (target end-effector orientation)
+        - custom_ds: Optional callable to override position control (Dynamical System)
         """
-        #rospy.init_node("dls_velocity_commander", anonymous=True)
+        rospy.init_node("dls_velocity_commander", anonymous=True)
 
-        self.pub = rospy.Publisher("/velocity_controller/command", Float64MultiArray, queue_size=10)
-        self.joint_state_sub = rospy.Subscriber("/joint_states", JointState, self.joint_state_callback)
+        # ROS publishers and subscribers
+        self.pub = rospy.Publisher("/velocity_controller/command",
+                                   Float64MultiArray, queue_size=10)
+        self.joint_state_sub = rospy.Subscriber("/joint_states",
+                                                JointState, self.joint_state_callback)
 
-        self.damping = 0.1
-        self.dt = 0.1
-        self.max_cartesian_vel = 0.035  # Linear velocity cap (m/s)
-        self.max_angular_vel = 0.05      # Angular velocity cap (rad/s)
-        self.custom_ds = custom_ds
+        # Controller parameters
+        self.damping = 0.1                     # Damping factor for DLS pseudoinverse
+        self.dt = 0.01                         # Control rate (s)
+        self.max_cartesian_vel = 0.05          # Max linear velocity (m/s)
+        self.max_angular_vel = 0.1            # Max angular velocity (rad/s)
+        self.custom_ds = custom_ds             # Optional dynamical system override
 
-        # Setup KDL
-        if not rospy.has_param("robot_description"):
-            rospy.logerr("Parameter 'robot_description' not set")
+        # Load URDF and create KDL chain
+        if not rospy.has_param("/robot_description"):
+            rospy.logerr("URDF parameter '/robot_description' not found.")
             exit(1)
-        self.robot = URDF.from_parameter_server()
-        success, tree = treeFromParam("robot_description")
+
+        self.robot = URDF.from_parameter_server("/robot_description")
+        success, tree = treeFromParam("/robot_description")
         if not success:
-            rospy.logerr("Failed to construct KDL tree from URDF")
+            rospy.logerr("Failed to parse KDL tree from robot description.")
             exit(1)
 
         self.base_link = "base_link"
         self.tip_link = "tool_ff"
         self.chain = tree.getChain(self.base_link, self.tip_link)
         self.n_joints = self.chain.getNrOfJoints()
-        rospy.loginfo("KDL chain successfully created with %d joints", self.n_joints)
+        rospy.loginfo("✅ Heal chain with %d joints loaded", self.n_joints)
 
+        # Setup KDL solvers
         self.fk_solver = kdl.ChainFkSolverPos_recursive(self.chain)
         self.jac_solver = kdl.ChainJntToJacSolver(self.chain)
 
-        # Set user-defined target frame
+        # Target frame
+        qx, qy, qz, qw = normalize_quaternion(target_quat)
         self.target_pos = kdl.Vector(*target_pos)
-        self.target_quat = kdl.Rotation.Quaternion(*target_quat)
+        self.target_quat = kdl.Rotation.Quaternion(qx, qy, qz, qw)
         self.target_frame = kdl.Frame(self.target_quat, self.target_pos)
 
-        self.current_joint_state = None
+        self.current_joint_state = None  # Updated by callback
 
-    def compute_dls_ik(self, q_current):
-        current_frame = kdl.Frame()
-        self.fk_solver.JntToCart(q_current, current_frame)
-
-        # --- Linear velocity computation ---
-        current_pos = np.array([current_frame.p.x(), current_frame.p.y(), current_frame.p.z()])
-        if self.custom_ds:
-            linear_error = self.custom_ds(current_pos)
-        else:
-            pos_error = self.target_frame.p - current_frame.p
-            linear_error = np.array([pos_error.x(), pos_error.y(), pos_error.z()])
-
-        norm_lin = np.linalg.norm(linear_error)
-        if norm_lin > self.max_cartesian_vel:
-            linear_error = (linear_error / norm_lin) * self.max_cartesian_vel
-
-        # --- Angular velocity computation ---
-        R_current = current_frame.M
-        R_target = self.target_frame.M
-        R_err = R_target * R_current.Inverse()
-
-        angle, axis = R_err.GetRotAngle()
-        axis_np = np.array([axis.x(), axis.y(), axis.z()])
-        angular_error = axis_np * angle
-
-        norm_ang = np.linalg.norm(angular_error)
-        if norm_ang > self.max_angular_vel:
-            angular_error = (angular_error / norm_ang) * self.max_angular_vel
-
-        # Combine into 6D error vector
-        error_vec = np.concatenate((linear_error, angular_error*0))
-
-        # --- Jacobian and DLS pseudoinverse ---
-        jacobian = kdl.Jacobian(self.n_joints)
-        self.jac_solver.JntToJac(q_current, jacobian)
-        J = np.zeros((6, self.n_joints))
-        for i in range(6):
-            for j in range(self.n_joints):
-                J[i, j] = jacobian[i, j]
-
-        lambda_sq = self.damping ** 2
-        damped_term = J @ J.T + lambda_sq * np.eye(6)
-
-        try:
-            inv_term = np.linalg.inv(damped_term)
-        except np.linalg.LinAlgError:
-            rospy.logerr("Damped term inversion failed!")
-            return np.zeros(self.n_joints)
-
-        J_dls = J.T @ inv_term
-        dq = J_dls @ error_vec
-        return dq
-
+    # ---------------- Joint State Callback ------------------
     def joint_state_callback(self, msg):
         self.current_joint_state = np.array(msg.position)
 
+    # ---------------- Main DLS IK Computation ----------------
+    def compute_dls_ik(self, q_current):
+        # Compute forward kinematics
+        current_frame = kdl.Frame()
+        self.fk_solver.JntToCart(q_current, current_frame)
+
+        # Extract position
+        current_pos = np.array([current_frame.p.x(),
+                                current_frame.p.y(),
+                                current_frame.p.z()])
+
+        # Compute linear error (or use DS override)
+        if self.custom_ds:
+            linear_error = self.custom_ds(current_pos)
+        else:
+            delta = self.target_frame.p - current_frame.p
+            linear_error = np.array([delta.x(), delta.y(), delta.z()])
+
+        # Limit linear velocity
+        lin_norm = np.linalg.norm(linear_error)
+        if lin_norm > self.max_cartesian_vel:
+            linear_error = (linear_error / lin_norm) * self.max_cartesian_vel
+
+        # Quaternion hemisphere continuity
+        target_q = np.array(self.target_frame.M.GetQuaternion())
+        current_q = np.array(current_frame.M.GetQuaternion())
+        if np.dot(target_q, current_q) < 0.0:
+            # Flip target quaternion
+            target_q = -target_q
+            self.target_frame.M = kdl.Rotation.Quaternion(*target_q)
+
+        # Compute angular error (body frame)
+        R_err = self.target_frame.M * current_frame.M.Inverse()
+        angle, axis = R_err.GetRotAngle()
+        angular_error = np.array([axis.x(), axis.y(), axis.z()]) * angle
+
+        # Limit angular velocity
+        ang_norm = np.linalg.norm(angular_error)
+        if ang_norm > self.max_angular_vel:
+            angular_error = (angular_error / ang_norm) * self.max_angular_vel
+
+        # Stack into twist vector [vx, vy, vz, wx, wy, wz]
+        twist_error = np.concatenate((linear_error, angular_error*0))
+
+        # Compute Jacobian
+        jacobian = kdl.Jacobian(self.n_joints)
+        self.jac_solver.JntToJac(q_current, jacobian)
+        J = np.array([[jacobian[i, j] for j in range(self.n_joints)] for i in range(6)])
+
+        # Damped Least Squares inverse
+        lambda_sq = self.damping ** 2
+        try:
+            J_dls = J.T @ np.linalg.inv(J @ J.T + lambda_sq * np.eye(6))
+        except np.linalg.LinAlgError:
+            rospy.logerr("❌ Jacobian inversion failed (singular)! Sending zero velocity.")
+            return np.zeros(self.n_joints)
+
+        dq = J_dls @ twist_error
+        return dq
+
+    # ---------------- Main Run Loop ------------------------
+    def run(self):
+        rate = rospy.Rate(1.0 / self.dt)
+        while not rospy.is_shutdown():
+            if self.current_joint_state is None:
+                rate.sleep()
+                continue
+
+            # Convert to KDL format
+            q_current = kdl.JntArray(self.n_joints)
+            for i in range(self.n_joints):
+                q_current[i] = self.current_joint_state[i]
+
+            dq = self.compute_dls_ik(q_current)
+            msg = Float64MultiArray()
+            msg.data = dq.tolist()
+            self.pub.publish(msg)
+            rate.sleep()
+
     def run_once(self):
-        """Run one control step without infinite looping."""
+        """
+        Perform a single DLS IK update and publish joint velocity.
+        Useful for external control loops (e.g., trajectory following).
+        """
         if self.current_joint_state is None:
             return
 
@@ -122,26 +174,6 @@ class DLSVelocityCommander:
             q_current[i] = self.current_joint_state[i]
 
         dq = self.compute_dls_ik(q_current)
-
         msg = Float64MultiArray()
         msg.data = dq.tolist()
         self.pub.publish(msg)
-
-    def run(self):
-        rate = rospy.Rate(1.0 / self.dt)
-        while not rospy.is_shutdown():
-            if self.current_joint_state is None:
-                rate.sleep()
-                continue
-
-            q_current = kdl.JntArray(self.n_joints)
-            for i in range(self.n_joints):
-                q_current[i] = self.current_joint_state[i]
-
-            dq = self.compute_dls_ik(q_current)
-
-            msg = Float64MultiArray()
-            msg.data = dq.tolist()
-            self.pub.publish(msg)
-
-            rate.sleep()

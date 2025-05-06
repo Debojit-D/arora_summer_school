@@ -35,11 +35,6 @@ Implement a torque-based gravity compensation controller, allowing the robot to 
 **Description**:
 The robot must trace a complex closed-loop trajectory manually or semi-autonomously. A buzzer integrated into the system activates when the robot is accurately following the path.
 
-
----
-
-Here’s the improved version of the `README.md` section for **Task 4: Pick and Place**, with clearer instructions, polished grammar, and a link to the detailed documentation (`pick_and_place.md`):
-
 ---
 
 ### 4. Pick and Place Task
