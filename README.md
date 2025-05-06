@@ -43,6 +43,9 @@ The robot must trace a complex closed-loop trajectory manually or semi-autonomou
 **Description**:
 Record the cartesian position of where the object needs to be picked using, Hint : In the gravity compensation you had worked on creating a publisher for computing the end-effector pose and orientation usign that get the predefined coordinated where you need to pick the object and then perform a series of planning to place the object to a new location
 
+[![Watch the video](https://img.youtube.com/vi/x2lWNBFbgVk/hqdefault.jpg)](https://youtu.be/x2lWNBFbgVk)
+
+
 ---
 
 ### 5. Navy Challenge – Target Localization via Laser
