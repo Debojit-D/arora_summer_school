@@ -10,7 +10,11 @@ This task involves implementing a **Pick-and-Place pipeline** for the **HEAL rob
 
 You will complete a partially filled Python script (`pick_and_place_student_template.py`) that takes the robot through a set of poses, performs grasping and releasing, and returns to the home pose.
 
+<div align="center">
+
 [![Watch the video](https://img.youtube.com/vi/x2lWNBFbgVk/hqdefault.jpg)](https://youtu.be/x2lWNBFbgVk)
+
+</div>
 
 
 ---
