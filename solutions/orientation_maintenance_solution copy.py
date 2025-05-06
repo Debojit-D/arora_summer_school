@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Arc Follower using DLS Velocity Commander (Vertical X-Z Arc, Full Sweep, Fully Smooth Orientation)
+Arc Follower using DLS Velocity Commander (Vertical X-Z Arc, Full Sweep, Smooth Orientation)
 Author: Debojit Das (2025)
 
 Description:
 - Start from center, sweep +30°, then -30°, then return to center.
 - Center is initial EE position.
 - Radius = Z coordinate of center.
-- End-effector Z-axis always points TOWARDS the center.
-- End-effector X-axis preserves initial X-axis as much as possible (Gram-Schmidt projection).
+- Optional: End-effector Z-axis tracks center dynamically.
 """
 
 import os
@@ -26,13 +25,15 @@ from dls_velocity_commander import DLSVelocityCommander
 # --------------- Config Section ---------------
 num_points = 50                    # Waypoints per arc segment
 arc_max_angle_deg = 30              # Max arc sweep +30° and -30°
-goal_reach_tolerance = 0.01          # 1cm
+goal_reach_tolerance = 0.01          # 1cm tolerance
+track_orientation = False             # <<<<<<<<<< ENABLE/DISABLE orientation tracking
 # ------------------------------------------------
 
 current_ee_position = None
 current_ee_quaternion = None
 
 def end_effector_pose_callback(msg):
+    """Update EE position and orientation."""
     global current_ee_position, current_ee_quaternion
     current_ee_position = np.array([
         msg.pose.position.x,
@@ -47,6 +48,7 @@ def end_effector_pose_callback(msg):
     ])
 
 def generate_arc_waypoints(center, radius):
+    """Generate waypoints along arc."""
     angles_pos = np.linspace(0, np.deg2rad(arc_max_angle_deg), num_points)
     angles_neg = np.linspace(np.deg2rad(arc_max_angle_deg), np.deg2rad(-arc_max_angle_deg), 2 * num_points)
     angles_return = np.linspace(np.deg2rad(-arc_max_angle_deg), 0, num_points)
@@ -67,14 +69,15 @@ def project_onto_plane(v, n):
 
 def compute_orientation(center, ee_position, x_axis_start):
     """
-    Compute rotation matrix where:
-    - Z-axis points towards center.
-    - X-axis is original starting X projected onto plane orthogonal to Z.
+    Compute rotation:
+    - Z-axis points from EE towards center
+    - X-axis projects starting X orthogonal to new Z
+    - Y-axis recomputed to maintain right-handed frame
     """
     z_axis = center - ee_position
     z_axis /= np.linalg.norm(z_axis)
 
-    # Project starting x_axis onto plane orthogonal to z_axis
+    # Project starting x onto plane orthogonal to z
     x_axis = project_onto_plane(x_axis_start, z_axis)
     x_axis /= np.linalg.norm(x_axis)
 
@@ -109,19 +112,22 @@ def main():
 
     arc_waypoints = generate_arc_waypoints(center, radius)
 
-    # Extract starting X-axis from initial orientation
+    # Extract starting X-axis
     R_start = tf_trans.quaternion_matrix(starting_quat)[:3, :3]
-    x_axis_start = R_start[:, 0]  # First column
+    x_axis_start = R_start[:, 0]  # First column is X
 
-    # Compute initial target orientation
-    initial_quat = compute_orientation(center, arc_waypoints[0], x_axis_start)
+    # Set initial target orientation
+    if track_orientation:
+        initial_quat = compute_orientation(center, arc_waypoints[0], x_axis_start)
+    else:
+        initial_quat = starting_quat.copy()
 
     commander = DLSVelocityCommander(
         target_pos=arc_waypoints[0],
         target_quat=initial_quat
     )
 
-    print("🧙‍♂️ Mr. Kala Jadu says: Starting magical full arc journey! 🚀")
+    print(f"🧙‍♂️ Mr. Kala Jadu says: Starting {'dynamic' if track_orientation else 'static'} full arc journey! 🚀")
 
     idx = 0
     total_points = len(arc_waypoints)
@@ -136,12 +142,17 @@ def main():
         distance = np.linalg.norm(current_ee_position - target_pos)
 
         if distance < goal_reach_tolerance:
-            print(f"🎯 Reached point {idx+1}/{total_points} ➡️ Moving to next!")
+            print(f"🎯 Reached point {idx+1}/{total_points} ➡️ Moving to next point!")
             idx += 1
             if idx < total_points:
                 commander.target_pos = kdl.Vector(*arc_waypoints[idx])
 
-                dynamic_quat = compute_orientation(center, arc_waypoints[idx], x_axis_start)
+                # Update orientation depending on tracking flag
+                if track_orientation:
+                    dynamic_quat = compute_orientation(center, arc_waypoints[idx], x_axis_start)
+                else:
+                    dynamic_quat = starting_quat.copy()
+
                 commander.target_quat = kdl.Rotation.Quaternion(*dynamic_quat)
                 commander.target_frame = kdl.Frame(commander.target_quat, commander.target_pos)
 

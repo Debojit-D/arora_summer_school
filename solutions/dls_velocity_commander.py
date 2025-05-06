@@ -86,7 +86,7 @@ class DLSVelocityCommander:
             angular_error = (angular_error / norm_ang) * self.max_angular_vel
 
         # Combine into 6D error vector
-        error_vec = np.concatenate((linear_error, angular_error))
+        error_vec = np.concatenate((linear_error, angular_error*0))
 
         # --- Jacobian and DLS pseudoinverse ---
         jacobian = kdl.Jacobian(self.n_joints)
