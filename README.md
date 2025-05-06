@@ -30,7 +30,7 @@ Implement a torque-based gravity compensation controller, allowing the robot to 
 
 ---
 
-### 🎯 3. Fun and Fair Trajectory Tracking Challenge
+### 3. Fun and Fair Trajectory Tracking Challenge
 
 **Description**:
 In this challenge, the HEAL robot must trace **smooth and repeatable end-effector trajectories** using **velocity-based Damped Least Squares (DLS) inverse kinematics**.
