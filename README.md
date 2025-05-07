@@ -104,13 +104,28 @@ You will:
 
 ### 5. Navy Challenge – Target Localization via Laser
 
-**Description**:
-A laser mounted on the end-effector is used to localize a distant target. Using internal joint sensing and minimal visual feedback, the robot must identify the Cartesian location of the target point.
+**🛠️ Description**:
+In this challenge, a laser pointer is mounted on the robot’s end-effector to localize a distant target using only internal sensing. The robot must infer the Cartesian position of the target based solely on:
 
-**Deliverables**:
+* Joint encoder feedback
+* Forward kinematics of the manipulator
 
-* Target detection and localization script
-* Sensor data processing module
+This task simulates long-range target localization in environments where visual sensors are unavailable.
+
+**🎯 Objective**:
+Accurately determine the 3D Cartesian coordinates of the point where the laser intersects a surface or object, using internal robot state information alone.
+
+---
+
+**✅ Deliverables**:
+
+* A working script or ROS node that:
+
+  * Computes the laser ray from the end-effector frame using joint state feedback.
+  * Determines the laser's intersection point in the world frame (target localization).
+  * Logs or outputs the inferred Cartesian coordinates.
+
+📖 [Detailed Instructions](docs/task_5_navy_challenge.md)
 
 ---
 ### Running the Robot and Scripts
