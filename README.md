@@ -1,4 +1,3 @@
-
 # HEAL Challenge and Task Replication Suite
 
 Welcome to the **HEAL Challenge Task Suite**!
@@ -10,7 +9,7 @@ This repository hosts a collection of engaging and technically enriching challen
 
 Each challenge includes:
 
-* **Challenge Code**: Presents the task interface or control.
+* **Student Template**: A partially implemented script for completing the challenge.
 * **Solution Code**: A reference implementation demonstrating successful task completion.
 * **Documentation**: Setup, usage, and extension guidelines.
 
@@ -34,7 +33,15 @@ In this task, the user must match a randomly generated **relative joint configur
 ### 2. Gravity Compensation Task
 
 **Description**:
-Implement a torque-based gravity compensation controller, allowing the robot to be moved freely by hand with minimal resistance from the motors.
+Implement a torque-based gravity compensation controller, allowing the robot to be moved freely by hand with minimal resistance from the motors. You will also compute and publish the end-effector pose using forward kinematics (either via KDL or manual DH-based method).
+
+📖 [Detailed Instructions](docs/task_2_gravity_compensation.md)
+
+<div align="center">
+
+[![Watch the video](https://img.youtube.com/vi/ewGwxI-yWAo/hqdefault.jpg)](https://youtu.be/ewGwxI-yWAo)
+
+</div>
 
 ---
 
@@ -57,7 +64,7 @@ Your task is to:
 
 🛡️ **Safety Constraint**:
 By default, angular velocity control is **disabled** in the IK solver to protect robot cable winding.
-You may optionally **enable angular components** for if the tasks demand so but do check that the gripper wire doesn't get entangled.
+You may optionally **enable angular components** if the tasks demand so but ensure safe operation.
 
 📦 **Starter Template**:
 Begin by editing `03_trajectory_tracking_student_template.py`.
@@ -113,33 +120,39 @@ A laser mounted on the end-effector is used to localize a distant target. Using 
 arora_summer_school/
 │
 ├── challenges/
-│   ├── relative_angle_reach.py
-│   ├── gravity_compensation.py
-│   ├── trajectory_tracking.py
-│   ├── pick_and_place.py
-│   ├── navy_target_localization.py
+│   ├── 01_relative_angle_reach_student_template.py
+│   ├── 02_gravity_compensation_student_template.py
+│   ├── 03_trajectory_tracking_student_template.py
+│   ├── 04_pick_and_place_student_template.py
+│   └── dls_velocity_commander.py
 │
 ├── solutions/
-│   ├── relative_angle_reach_solution.py
-│   ├── gravity_compensation_solution.py
-│   ├── trajectory_tracking_solution.py
-│   ├── pick_and_place_solution.py
-│   ├── navy_target_localization_solution.py
+│   ├── 01_relative_angle_reach_solution.py
+│   ├── 02_gravity_compensation_and_end_effector_publisher.py
+│   ├── 03_trajectory_tracking_task_solution.py
+│   ├── 04_pick_and_place_solution.py
+│   ├── dls_velocity_commander.py
+│   ├── orientation_maintenance_solution.py
+│   └── orientation_maintenance_solutionv0.py
+│
+├── utils/
+│   ├── joint_teleop_heal.py
+│   └── TRAJECTORY_PLANNERS/
+│       └── trajectory_planners.py
 │
 ├── docs/
-│   ├── setup_instructions.md
-│   ├── hardware_requirements.md
-│   ├── software_installation.md
-│   └── task_specific_notes/
-│       ├── relative_angle_reach.md
-│       ├── gravity_compensation.md
-│       ├── trajectory_tracking.md
-│       ├── pick_and_place.md
-│       ├── navy_target_localization.md
+│   ├── task_1_relative_angle_reach.md
+│   ├── task_2_gravity_compensation.md
+│   ├── task_3_trajectory_tracking.md
+│   └── task_4_pick_and_place.md
 │
+├── include/
+│   └── arora_summer_school/
+│
+├── CMakeLists.txt
+├── package.xml
 ├── README.md
 └── LICENSE
 ```
 
 ---
-
