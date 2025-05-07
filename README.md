@@ -33,7 +33,7 @@ In this task, the user must match a randomly generated **relative joint configur
 ### 2. Gravity Compensation Task
 
 **Description**:
-Implement a torque-based gravity compensation controller, allowing the robot to be moved freely by hand with minimal resistance from the motors. You will also compute and publish the end-effector pose using forward kinematics (either via KDL or manual DH-based method).
+Use a torque-based gravity compensation controller, allowing the robot to be moved freely by hand with minimal resistance from the motors. You will also compute and publish the end-effector pose using forward kinematics (either via KDL or manual DH-based method).
 
 📖 [Detailed Instructions](docs/task_2_gravity_compensation.md)
 
