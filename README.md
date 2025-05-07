@@ -113,6 +113,131 @@ A laser mounted on the end-effector is used to localize a distant target. Using 
 * Sensor data processing module
 
 ---
+### Running the Robot and Scripts
+
+Follow these steps to start the robot and run the teleoperation scripts:
+
+#### Step 1: Start the Robot and Controller
+1. **Power on the robot and its controller**.
+
+2. **Connect to the robot's controller**:
+   Use SSH to connect to the robot’s controller from your local PC:
+
+   ```bash
+   ssh cobot@192.168.1.25
+   ```
+
+   Enter the password when prompted. This establishes a connection with the robot's controller.
+
+3. **Navigate to the controller’s execution directory**:
+
+   ```bash
+   cd tests/build/
+   ```
+
+   This will take you to the required directory to run the robot's server.
+
+4. **Start the Gripper**:
+
+   To start the **gripper** and initiate communication with the hardware, use the following command:
+
+   ```bash
+   sudo ./gripper_test
+   ```
+
+    Once it’s running, the gripper should respond to commands and be ready for use in the teleoperation setup. Keep running `/gripper_test` till the gripper on the heal robot opens and closes. Once done press `ctrl+c`.
+
+5. **Start the Heal server**:
+
+   ```bash
+   sudo ./heal_server
+   ```
+
+   This launches the server that manages the robot's hardware and communication. Do not close this terminal.
+
+
+6. **Home the robot**:
+   To bring the robot to its home position, run the following command:
+
+   ```bash
+   sudo ./base_rigid
+   ```
+
+   Make sure to run this command before shutting down the robot to ensure it homes correctly. Once done press `ctrl+c`.
+
+
+---
+
+#### Step 2: Launch the Robot Controller
+1. **Open a new terminal on your PC** and navigate to the directory where the controller is stored:
+
+   ```bash
+   cd Debojit_WS/Addverb_Heal_and_Syncro_Hardware
+   ```
+
+2. **Source the workspace** to set up the environment variables:
+
+   ```bash
+   source devel/setup.bash
+   ```
+---
+
+### 3. **Launch the Controller using ROS**
+
+To bring up the robot control system, run:
+
+```bash
+roslaunch addverb_cobot_control bringup.launch
+```
+
+If you see the message:
+
+```
+[INFO] [timestamp]: robot has started
+```
+
+…then the robot is successfully initialized, and you can proceed to run your control scripts.
+
+---
+
+### 4. **Check the Control Mode**
+
+Open the configuration file:
+
+```bash
+addverb_cobot_control/config/default_control.yaml
+```
+
+Ensure the following line is set to **`velocity`** control mode:
+
+```yaml
+ros_control_mode: velocity
+```
+
+> 🔄 **If it is set to `effort`**, change it to `velocity`.
+> Use `effort` **only** for:
+>
+> * Gravity compensation tasks
+> * Recording Cartesian poses passively
+
+---
+
+### 5. **Modify the Launch File to Include Controller Spawner**
+
+In your `bringup.launch` file (or included launch files), add the following node block **if not already present**:
+
+```xml
+<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+      args="joint_state_controller effort_controller twist_controller joint_trajectory_controller" />
+```
+
+> 🔧 **Note**: Replace `velocity_controller` with `effort_controller` as requested, which is appropriate when operating under effort-based control mode (e.g., for gravity compensation).
+
+---
+
+Let me know if you want a script to switch between velocity/effort dynamically or with a launch argument.
+
+
 
 ## 📦 Repository Structure
 
@@ -124,6 +249,7 @@ arora_summer_school/
 │   ├── 02_gravity_compensation_student_template.py
 │   ├── 03_trajectory_tracking_student_template.py
 │   ├── 04_pick_and_place_student_template.py
+│   ├── 05_navy_challenge_student_template.py
 │   └── dls_velocity_commander.py
 │
 ├── solutions/
@@ -131,9 +257,8 @@ arora_summer_school/
 │   ├── 02_gravity_compensation_and_end_effector_publisher.py
 │   ├── 03_trajectory_tracking_task_solution.py
 │   ├── 04_pick_and_place_solution.py
-│   ├── dls_velocity_commander.py
-│   ├── orientation_maintenance_solution.py
-│   └── orientation_maintenance_solutionv0.py
+│   ├── 05_navy_challenge_solution.py
+│   └── dls_velocity_commander.py
 │
 ├── utils/
 │   ├── joint_teleop_heal.py
@@ -144,7 +269,8 @@ arora_summer_school/
 │   ├── task_1_relative_angle_reach.md
 │   ├── task_2_gravity_compensation.md
 │   ├── task_3_trajectory_tracking.md
-│   └── task_4_pick_and_place.md
+│   ├── task_4_pick_and_place.md
+|   └── task_5_navy_challenge.md
 │
 ├── include/
 │   └── arora_summer_school/
