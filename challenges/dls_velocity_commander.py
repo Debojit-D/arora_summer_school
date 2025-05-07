@@ -124,7 +124,7 @@ class DLSVelocityCommander:
             angular_error = (angular_error / ang_norm) * self.max_angular_vel
 
         # Stack into twist vector [vx, vy, vz, wx, wy, wz]
-        twist_error = np.concatenate((linear_error, angular_error*0)) # Remove zero to get angular velocities also
+        twist_error = np.concatenate((linear_error, angular_error*0))
 
         # Compute Jacobian
         jacobian = kdl.Jacobian(self.n_joints)

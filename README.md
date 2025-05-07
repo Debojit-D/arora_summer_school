@@ -19,7 +19,15 @@ Each challenge includes:
 ### 1. Relative Angle Reaching Task
 
 **Description**:
-The user is given a random target joint configuration relative to the current pose. Using a joint-level teleoperation interface, the user must drive the robot to this configuration. The system scores performance based on joint-wise accuracy.
+In this task, the user must match a randomly generated **relative joint configuration** using a **joint-level teleoperation interface**. The robot evaluates the accuracy and scores the user's performance based on joint-wise alignment with the target.
+
+📖 [Detailed Instructions](docs/task_1_relative_angle_reach.md)
+
+<div align="center">
+
+[![Watch the video](https://img.youtube.com/vi/QQjjRGbvd3g/hqdefault.jpg)](https://youtu.be/QQjjRGbvd3g)
+
+</div>
 
 ---
 
