@@ -1,171 +1,139 @@
-# 🛠️ Pick and Place Task — Student Documentation
+# 🚢 Navy Challenge — Laser‑Tip World Pose & Plane‑Intersection
+
+---
 
 ## 📄 Overview
 
-This task involves implementing a **Pick-and-Place pipeline** for the **HEAL robotic arm** using:
+A laser module is mounted on the **HEAL** robot’s tool flange.
+Your mission is to compute, in real time,
 
-* **Cartesian pose tracking** via **inverse kinematics**
-* **Joint velocity-based trajectory execution**
-* **Gripper commands** for pick and release using ROS topics
+1. **Laser origin / tip** in the **world frame**, and
+2. The **(x ,y) intersection** of the laser beam with a horizontal plane (e.g., a table‑top).
 
-You will complete a partially filled Python script (`pick_and_place_student_template.py`) that takes the robot through a set of poses, performs grasping and releasing, and returns to the home pose.
+You will complete a ROS‑Python script that:
 
-<div align="center">
+* subscribes to the published **end‑effector pose** (`/end_effector_pose`)
+* applies a **fixed tool → laser transform** (RPY + XYZ)
+* publishes two `PointStamped` topics:
 
-[![Watch the video](https://img.youtube.com/vi/x2lWNBFbgVk/hqdefault.jpg)](https://youtu.be/x2lWNBFbgVk)
-
-</div>
-
-
----
-
-## 🎯 Objectives
-
-By the end of this task, you should be able to:
-
-✅ Define a series of Cartesian poses in 3D space
-✅ Solve inverse kinematics using KDL
-✅ Generate joint velocity trajectories using quintic interpolation
-✅ Trigger grasp and release actions with ROS messages
-✅ Execute a full pick-and-place routine
+  * `/laser_tip_world` — laser origin / tip in world coordinates
+  * `/laser_plane_intersection` — beam hit‑point on the plane `z = H`
 
 ---
 
-## 🧠 Background Concepts
+## 🎯 Learning Objectives
 
-### 1. **Inverse Kinematics (IK)**
+By completing this task you will:
 
-The robot must compute joint angles that achieve a desired end-effector pose (position + orientation).
-This is done using **PyKDL** with the `ChainIkSolverPos_LMA` solver.
-
-### 2. **Joint Velocity Control**
-
-Instead of commanding joint positions directly, this task uses **joint velocities**, which are generated from a trajectory interpolator (quintic).
-
-### 3. **Action Interfaces**
-
-The robot accepts:
-
-* `/robotA/grasp_action/goal` → to **close** the gripper
-* `/robotA/release_action/goal` → to **open** the gripper
-
-These are used at the appropriate points in the trajectory.
+✅ Manipulate homogeneous transforms (4 × 4 matrices)
+✅ Convert **PoseStamped → matrix** and vice‑versa
+✅ Understand laser–frame vs. tool–frame relationships
+✅ Compute the parametric intersection of a ray with a plane
+✅ Publish real‑time geometric data for downstream use (e.g., targeting, mapping)
 
 ---
 
-## 📁 File Location
+## 🗂️ Files & Folders
 
-Your code lives at:
+| Path                                             | Purpose                                        |
+| ------------------------------------------------ | ---------------------------------------------- |
+| `challenges/05_laser_world_publisher_student.py` | **Student template** you must complete         |
+| `solutions/05_laser_world_publisher_solution.py` | Reference solution *(view only after trying!)* |
+| `docs/task_5_navy_laser.md`                      | This detailed README                           |
+| other tasks …                                    | —                                              |
+
+---
+
+## 🛠️ Prerequisites
+
+* **Task 02** FK node (publishing `/end_effector_pose`) is running.
+* Robot URDF is uploaded (`/robot_description`).
+* `/joint_states` and your velocity controller are active.
+* Basic understanding of homogeneous transforms and Euler/RPY.
+
+---
+
+## 🧩 Sections to Complete
+
+Open **`05_laser_world_publisher_student.py`** and implement every **`TODO`** block:
+
+| #  | Function / Block                    | What to do                                            |
+| -- | ----------------------------------- | ----------------------------------------------------- |
+|  1 |  Build `self.T_tool_laser`          | Convert param RPY (deg) → rotation; assign XYZ offset |
+|  2 |  `T_w_tool` from PoseStamped        | Pose → 4 × 4 matrix                                   |
+|  3 |  Compute `T_w_laser`                | Matrix multiplication                                 |
+|  4 |  Laser origin & tip in world coords | Homogeneous point transform                           |
+|  5 |  Beam direction (`+X` axis)         | First column of rotation matrix                       |
+|  6 |  Plane‑intersection math            | Solve for *t* where `z = plane_height`                |
+|  7 |  Publish `PointStamped` messages    | Fill header, xyz; call `publish()`                    |
+
+---
+
+## 🔧 Running the Template
 
 ```bash
-arora_summer_school/challenges/pick_and_place_student_template.py
+# Terminal 1 – FK node (Task 02)
+rosrun your_pkg 02_fk_gravity_comp_student.py
+
+# Terminal 2 – Laser task
+rosrun your_pkg 05_laser_world_publisher_student.py \
+        _laser_rpy:="[90,0,0]" \
+        _laser_offset_xyz:="[0.0,0.0,0.05]" \
+        _tip_distance:=0.0 \
+        _plane_height:=0.0
 ```
 
-You can run it after building the workspace using:
+* Adjust parameters to match your hardware mount.
+* View outputs:
 
 ```bash
-rosrun your_package 04_pick_and_place_student_template.py
+rostopic echo /laser_tip_world
+rostopic echo /laser_plane_intersection
 ```
 
+* Visualise in RViz: **Add → PointStamped**, select the topics.
+
 ---
 
-## 🧩 Sections to Complete
+## 📜 Mathematical Notes
 
-### ✏️ 1. Define Target Poses
+### 1. Tool → Laser Transform
 
-Inside the constructor of the `VelocityCommander` class, you will find this block:
+`T_tool_laser` = `R(roll,pitch,yaw) ⨉ Trans(offset_xyz)`
 
-```python
-self.poses = [
-    # TODO: Fill this with the required pick and place poses.
-]
+### 2. World → Laser
+
+`T_w_laser = T_w_tool · T_tool_laser`
+
+### 3. Beam Direction
+
+`beam_dir_world = T_w_laser[:3, 0]`   # +X axis
+
+### 4. Ray / Plane Intersection
+
+For origin **o** and direction **d** (unit or not):
+
+```
+o_z + t * d_z = plane_height  →  t = (H - o_z) / d_z
 ```
 
-Each entry in this list is a dictionary like:
-
-```python
-{
-    'pos': kdl.Vector(x, y, z),
-    'quat': kdl.Rotation.Quaternion(qx, qy, qz, qw),
-    'action': 'open' or 'close' or ''
-}
-```
-
-You need to define **at least 6–7 poses**:
-
-| # | Pose Description            | Action  |
-| - | --------------------------- | ------- |
-| 1 | Home pose (above object)    | "open"  |
-| 2 | Move down to grasp object   | ""      |
-| 3 | Close gripper (pick object) | "close" |
-| 4 | Lift up after grasp         | ""      |
-| 5 | Move to placement position  | ""      |
-| 6 | Lower and release           | "open"  |
-| 7 | Return to home              | ""      |
-
-Use real Cartesian coordinates that your robot can reach. Orientation should generally point the gripper down toward the object.
+Use intersection only if `|d_z| > ε` **and** `t ≥ 0`.
 
 ---
 
-### ✏️ 2. Test Gripper Actions
+## 🛠️ Troubleshooting
 
-The following utility functions are provided:
-
-```python
-publish_grasp_action_goal(force=100)     # Close gripper
-publish_release_action_goal()            # Open gripper
-```
-
-These are automatically called based on the `action` field you define in the pose dictionary.
+| Symptom                      | Likely Cause                                | Fix                                                |
+| ---------------------------- | ------------------------------------------- | -------------------------------------------------- |
+| `/laser_tip_world` all zeros | `TODO` blocks not filled or transform wrong | Check matrices; print debug                        |
+| No intersection published    | Beam parallel to plane or pointing away     | Verify RPY; ensure `d_z ≠ 0` and `t ≥ 0`           |
+| Wrong XYZ values             | Offset or RPY wrong‑handed                  | Verify laser mount dimensions and sign conventions |
 
 ---
 
-### ✏️ 3. Trajectory Execution
+## 🏁 Submission Checklist
 
-The script uses your current joint state to compute a quintic velocity trajectory to the IK-computed target. This is done using:
+* [ ] All `TODO` blocks implemented.
+* [ ] Node publishes both topics with plausible data.
 
-```python
-TrajectoryPlanner.quintic_joint_trajectory(...)
-```
-
-You don't need to edit this — just make sure your poses are valid, and the joint state topic is working.
-
----
-
-## 🧪 How to Test
-
-### ✅ Prerequisites:
-
-* Robot URDF loaded into parameter server (`robot_description`)
-* `/joint_states` is being published
-* Velocity controller is active (`/velocity_controller/command`)
-* Gripper topics `/robotA/grasp_action/goal` and `/robotA/release_action/goal` are available
-
-### 🚀 Run the script:
-
-```bash
-rosrun your_package pick_and_place_student_template.py
-```
-
-You should see:
-
-* The robot moving through each of your poses
-* Logs confirming velocity publishing
-* Gripper actions being executed at the right times
-
----
-
-## 🧰 Troubleshooting
-
-| Problem                       | Cause                  | Fix                                                      |
-| ----------------------------- | ---------------------- | -------------------------------------------------------- |
-| `robot_description` not found | URDF not loaded        | Use `roslaunch` to load the URDF                         |
-| IK solver fails               | Pose unreachable       | Check the coordinates and ensure the robot can reach it  |
-| Gripper not responding        | Topic mismatch         | Check if `/robotA/grasp_action/goal` is being published  |
-| Robot not moving              | No velocity controller | Make sure the controller is running in your control loop |
-
----
-
-Note : Check the Utils Folder some helpful trajectory planning class files.
-
----
+Good luck, cadet — may your laser hit the bullseye every time! ⚓🔴
