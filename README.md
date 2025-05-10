@@ -160,8 +160,7 @@ Follow these steps to start the robot and run the teleoperation scripts:
    sudo ./gripper_test
    ```
 
-    Once it’s running, the gripper should respond to commands and be ready for use in the teleoperation setup. Keep running `/gripper_test` till the gripper on the heal robot opens and closes. Once done press `ctrl+c`.
-
+    Once it’s running, the gripper should respond to commands and be ready for use in the teleoperation setup. Keep running `/gripper_test` till the gripper on the heal robot opens and closes. If you get an error run the ' /gripper_test' again.
 5. **Start the Heal server**:
 
    ```bash
