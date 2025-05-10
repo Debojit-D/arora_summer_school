@@ -249,10 +249,6 @@ In your `bringup.launch` file (or included launch files), add the following node
 
 ---
 
-Let me know if you want a script to switch between velocity/effort dynamically or with a launch argument.
-
-
-
 ## 📦 Repository Structure
 
 ```plaintext
