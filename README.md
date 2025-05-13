@@ -130,6 +130,8 @@ Accurately determine the 3D Cartesian coordinates of the point where the laser i
 ---
 ### Running the Robot and Scripts
 
+Note : Make sure you run this in the normal system environment. If Conda is active, your terminal prompt will show (base). Please deactivate Conda before running any robot scripts, below.
+
 Follow these steps to start the robot and run the teleoperation scripts:
 
 #### Step 1: Start the Robot and Controller
@@ -170,8 +172,13 @@ Follow these steps to start the robot and run the teleoperation scripts:
    This launches the server that manages the robot's hardware and communication. Do not close this terminal.
 
 
+Note: If the system is already in the home position, you can skip the step below and move on to the next section.
+
 6. **Home the robot**:
-   To bring the robot to its home position, run the following command:
+   To bring the robot to its home position, run the following command: Note: This command should be executed on the system you’ve SSHed into (i.e., the remote system).
+These are individual command — even if the server is already running, you should first terminate it by pressing Ctrl+C. Then, run the commands below. 
+
+
 
    ```bash
    sudo ./base_rigid
@@ -219,7 +226,7 @@ If you see the message:
 Open the configuration file:
 
 ```bash
-addverb_cobot_control/config/default_control.yaml
+src/cobot_ros/addverb_cobot_control/config/default_control.yaml
 ```
 
 Ensure the following line is set to **`velocity`** control mode:
@@ -240,12 +247,43 @@ ros_control_mode: velocity
 
 In your `bringup.launch` file (or included launch files), add the following node block **if not already present**:
 
+Path :
+
+```bash
+src/cobot_ros/addverb_cobot_control/launch/bringup.launch
+```
+
 ```xml
+<!-- Load controller manager -->
 <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
       args="joint_state_controller effort_controller twist_controller joint_trajectory_controller" />
 ```
 
 > 🔧 **Note**: Replace `velocity_controller` with `effort_controller` as requested, which is appropriate when operating under effort-based control mode (e.g., for gravity compensation).
+
+---
+
+### ⚠️  Shutting Down and Caution
+
+🔴 Always sit with the emergency stop button while operating the robot. (VERY IMPORTANT)
+
+If you notice any undesired or unsafe behavior, immediately press the emergency stop.
+
+Note : For restarting the system after emergency stop is released follow from the starting of Running the Robot and Scripts
+
+ 🔻 Shutting Down Procedure:
+1. First, shut down the robot via ROS using the following command:
+
+   (In a new terminal)
+   
+   ```bash
+   rosservice call /robotA/shutdown_robot_srv "data: true"
+   ```
+2. Then, return to the terminal where you ran the heal server command
+   and press Ctrl+C to terminate it.
+
+ ✅ Always follow this procedure when the robot is not in use.
+
 
 ---
 

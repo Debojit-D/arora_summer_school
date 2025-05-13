@@ -67,11 +67,6 @@ These are updated every 10 ms and fed to the velocity controller.
 arora_summer_school/challenges/03_trajectory_tracking_student_template.py
 ```
 
-Run the script using:
-
-```bash
-rosrun your_package trajectory_tracking_student_template.py
-```
 
 ---
 
@@ -151,8 +146,10 @@ Examples:
 
 ### 🚀 Run the script:
 
+In the terminal go to the path where the file exits and type:
+
 ```bash
-rosrun your_package trajectory_tracking_student_template.py
+python3 trajectory_tracking_student_template.py
 ```
 
 You should see:

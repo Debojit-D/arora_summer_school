@@ -61,12 +61,6 @@ Your code lives at:
 arora_summer_school/challenges/pick_and_place_student_template.py
 ```
 
-You can run it after building the workspace using:
-
-```bash
-rosrun your_package 04_pick_and_place_student_template.py
-```
-
 ---
 
 ## 🧩 Sections to Complete

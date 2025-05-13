@@ -77,10 +77,10 @@ Ensure that:
 
 ### 🧑‍💻 2. Run the Task Script
 
-In a terminal:
+In the terminal go to the path where the file exits and type:
 
 ```bash
-rosrun your_package 01_relative_angle_reaching.py
+python3 01_relative_angle_reaching.py
 ```
 
 You will see a **random joint configuration** displayed.

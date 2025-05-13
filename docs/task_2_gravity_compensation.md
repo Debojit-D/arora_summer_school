@@ -79,8 +79,11 @@ roslaunch your_robot_description upload.launch
 
 ## 🛠️ How to Run
 
+In the terminal go to the path where the file exits and type:
+
+
 ```bash
-rosrun your_package 02_fk_gravity_comp_template.py
+python3 02_gravity_compensation_student_template.py
 ```
 
 The node:
