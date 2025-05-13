@@ -137,8 +137,10 @@ You don't need to edit this — just make sure your poses are valid, and the joi
 
 ### 🚀 Run the script:
 
+In the terminal go to the path where the file exits and type:
+
 ```bash
-rosrun your_package pick_and_place_student_template.py
+python3 pick_and_place_student_template.py
 ```
 
 You should see:

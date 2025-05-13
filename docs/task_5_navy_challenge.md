@@ -10,6 +10,8 @@ Your mission is to compute, in real time,
 2. the **(x, y) coordinate** where the beam hits a horizontal plane  
    *(e.g. the table‑top at height `z = H`)*.
 
+Note if the height is just by default on which the robot is mounted then z=0.
+
 A ROS‑Python node must:
 
 - subscribe to the published **end‑effector pose** (`/end_effector_pose`),

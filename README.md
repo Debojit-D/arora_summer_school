@@ -271,6 +271,8 @@ If you notice any undesired or unsafe behavior, immediately press the emergency 
 
 Note : For restarting the system after emergency stop is released follow from the starting of Running the Robot and Scripts
 
+Note : Even if the robot stops in safety example hitting the table or object due to some error, follow from the starting of Running the Robot and Scripts
+
  🔻 Shutting Down Procedure:
 1. First, shut down the robot via ROS using the following command:
 
@@ -281,6 +283,8 @@ Note : For restarting the system after emergency stop is released follow from th
    ```
 2. Then, return to the terminal where you ran the heal server command
    and press Ctrl+C to terminate it.
+
+Note : Any place where you want to stop the robot use Ctrl + C and not Ctrl + Z
 
  ✅ Always follow this procedure when the robot is not in use.
 
