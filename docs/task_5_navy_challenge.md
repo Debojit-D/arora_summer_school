@@ -105,7 +105,7 @@ A constant 4 × 4 matrix:
 ```math
 T^{\text{tool}}_{\text{laser}}
 = R(\text{roll},\text{pitch},\text{yaw})\; \cdot\;
-  \operatorname{Trans}(\text{offset}_{xyz})
+  {Trans}(\text{offset}_{xyz})
 ```
 
 ### 2. World → Laser
